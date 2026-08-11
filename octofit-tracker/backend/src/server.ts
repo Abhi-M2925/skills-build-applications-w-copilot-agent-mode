@@ -3,6 +3,12 @@ import dotenv from 'dotenv';
 import express, { type Request, type Response } from 'express';
 import connectToDatabase from './database';
 import { User } from './models/user';
+import activitiesRoutes from './routes/activities';
+import leaderboardRoutes from './routes/leaderboard';
+import teamsRoutes from './routes/teams';
+import usersRoutes from './routes/users';
+import workoutsRoutes from './routes/workouts';
+import { seedDatabase } from './seed';
 
 dotenv.config();
 
@@ -25,6 +31,21 @@ app.get('/api', async (_req: Request, res: Response) => {
     users,
     environment: process.env.NODE_ENV ?? 'development',
   });
+});
+
+app.use('/api/users', usersRoutes);
+app.use('/api/teams', teamsRoutes);
+app.use('/api/activities', activitiesRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/workouts', workoutsRoutes);
+
+app.post('/api/seed', async (_req: Request, res: Response) => {
+  try {
+    const result = await seedDatabase();
+    res.json({ message: 'Seed data loaded', count: result.users.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to seed database', details: error });
+  }
 });
 
 app.listen(port, '0.0.0.0', () => {
